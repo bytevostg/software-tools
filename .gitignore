@@ -34,3 +34,15 @@ htmlcov/
 
 # Jupyter
 .ipynb_checkpoints/
+exam/.pydeps/pypdf/py.typed
+exam/.pydeps/pypdf-6.10.2.dist-info/INSTALLER
+exam/.pydeps/pypdf-6.10.2.dist-info/METADATA
+exam/.pydeps/pypdf-6.10.2.dist-info/RECORD
+exam/.pydeps/pypdf-6.10.2.dist-info/REQUESTED
+exam/.pydeps/pypdf-6.10.2.dist-info/WHEEL
+exam/.pydeps/pypdf-6.10.2.dist-info/licenses/LICENSE
+exam/.pydeps/typing_extensions-4.15.0.dist-info/INSTALLER
+exam/.pydeps/typing_extensions-4.15.0.dist-info/METADATA
+exam/.pydeps/typing_extensions-4.15.0.dist-info/RECORD
+exam/.pydeps/typing_extensions-4.15.0.dist-info/WHEEL
+exam/.pydeps/typing_extensions-4.15.0.dist-info/licenses/LICENSE
