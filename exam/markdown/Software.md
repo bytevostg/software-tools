@@ -1,3 +1,27 @@
+---
+puppeteer:
+  width: "240mm"
+  height: "6000mm"
+  margin:
+    top: "10mm"
+    bottom: "10mm"
+    left: "10mm"
+    right: "10mm"
+  printBackground: true
+  pageRanges: "1"
+---
+
+<style>
+@media print {
+  /* 表格自动换行，防止行内长内容溢出右边 */
+  table { width: 100% !important; table-layout: fixed; border-collapse: collapse; }
+  th, td { word-break: break-word; overflow-wrap: anywhere; white-space: normal; vertical-align: top; padding: 4px 6px; }
+  /* 代码块长行自动换行 */
+  pre, pre code { white-space: pre-wrap !important; word-break: break-word; overflow-wrap: anywhere; }
+  code, a { overflow-wrap: anywhere; word-break: break-word; }
+}
+</style>
+
 # Software Tools 复习整理（来自 `softwaretool.docx`）
 
 ## 使用说明
@@ -267,8 +291,76 @@ Accept-Language: en, mi
 - **`em` vs `rem`（一句）**：**`em`** 相对**本元素**最终算出来的 `font-size`；**`rem`** 只跟 **`html`**，改根字号则全文档里用 `rem` 的字号一起缩放。  
 - **Reset（一句）**：常把 **`html` / `body` 浏览器默认的外边距、内边距清掉**，与「从零开始排版」同属 **CSS reset** 常见动机。  
 - **`<h1>` 块级**：`h1` 是**块级**，默认可铺满包容块宽度；讲义里 **`width: 100%`** 是显式写满 **`body`**（或父容器）宽度，与默认块级盒行为一致。  
-- **inline 与 block** 的行为差异是常考点。  
+- **inline 与 block** 的行为差异是常考点（见下方 §5.1 展开）。  
 - **`margin collapse`** 关注「垂直相邻外边距合并」。
+
+#### 5.1 inline vs block 行为差异（展开）
+
+**一句话记忆**
+- **block（块级盒）**：**自己占一整行**，可设 **宽/高**，**四边 margin/padding 都按盒模型生效**，**垂直方向 margin 会 collapse**。
+- **inline（行内盒）**：**跟着文字流走**，**宽/高被忽略**（`width/height` 不生效），**只有左右 margin 影响布局**，**上下 margin 基本不推开周围元素**；上下 padding 视觉上会鼓出来但**不撑开行高**，容易**视觉重叠**。
+- **inline-block（折中款）**：**像 inline 一样并排**，但**像 block 一样接受 `width/height` 与四边 margin/padding**（参见 §5 末尾的左右盒示例 `display: inline-block`，行 304）。
+
+**对照表（高频考点全集中在这一张）**
+
+| 维度 | **block** | **inline** | **inline-block** |
+|------|-----------|------------|------------------|
+| 是否独占一行 | **是**（前后自动换行） | **否**（跟文字一起排） | **否**（并排在一行） |
+| `width` / `height` | **生效** | **忽略**（非替换元素） | **生效** |
+| 左右 `margin` / `padding` | 生效 | **生效**（会推开同行内容） | 生效 |
+| 上下 `margin` | 生效，**且参与 vertical collapse** | **不参与布局**（一般不推开上下行） | 生效，**不参与 collapse**（自身建立独立格式上下文） |
+| 上下 `padding` | 生效，撑开盒高 | **背景会鼓出**，但**不撑开行框**，可能**视觉压到相邻行** | 生效，撑开盒高 |
+| 默认排布方向 | 垂直堆叠 | 水平随文字流 | 水平随文字流 |
+| 典型默认标签 | `div / p / h1–h6 / section / article / header / footer / nav / ul / ol / li / form` | `span / a / em / strong / code / label / b / i / small` | （需手动设 `display: inline-block`） |
+
+> **替换元素例外**：`img / input / video / iframe` 默认是 **inline-replaced（行内替换）**，虽然是 inline，但 **`width/height` 仍然生效**——这是讲义里容易踩的坑。
+
+**速判口诀（考试现场用）**
+1. 看到题目让「设 `width` 给 `<span>`」——默认 inline，**宽度无效**，需要先 `display: block` 或 `inline-block`。
+2. 看到题目让两个块「水平并排」——选 **`inline-block`**（或 flex / grid，但讲义这章先用 inline-block 的多）。
+3. 看到「上下垂直外边距合并」——只在 **block** 之间发生，**inline 不参与**，**inline-block 也不参与**（它建立 BFC）。
+4. 看到「左右两个 inline 之间空隙是两边 margin 之和」——对照 §5 第 315 行的左右并排示例。
+5. 看到「`<h1>` 默认 100% 宽」——**block** 行为，参考行 269 的笔记。
+
+**小例子 1：宽度对 `<span>` 不生效**
+```html
+<style>
+  span.a { width: 200px; height: 50px; background: #fcc; }
+  span.b { display: inline-block; width: 200px; height: 50px; background: #cfc; }
+</style>
+<span class="a">A 宽高被忽略</span>
+<span class="b">B 宽高生效</span>
+```
+- `span.a`：宽高**被忽略**，盒子大小完全跟文字走。
+- `span.b`：改成 **`inline-block`** 后，`200×50` 才**真正生效**。
+
+**小例子 2：inline 的上下 margin/padding 不推开行**
+```html
+<style>
+  span.big { padding: 20px 0; margin: 30px 0; background: #def; }
+</style>
+<p>前一行文字 <span class="big">行内大块</span> 后续文字。</p>
+<p>下一段文字仍然紧贴上面。</p>
+```
+- `span.big` 的**背景**会因为 `padding: 20px 0` 鼓出来，**但行高没有被撑开**，会**视觉重叠**上下文字。
+- `margin: 30px 0` 在 inline 上**对垂直布局没意义**，下一段不会被往下推。
+
+**小例子 3：block vs inline-block 的「占行」差别**
+```html
+<style>
+  .blk { display: block;        width: 120px; height: 40px; background: #fdd; }
+  .ib  { display: inline-block; width: 120px; height: 40px; background: #dfd; }
+</style>
+<div class="blk">块1</div><div class="blk">块2</div>   <!-- 上下堆 -->
+<span class="ib">A</span><span class="ib">B</span>     <!-- 左右排 -->
+```
+- 两个 `.blk` **各占一行**，垂直堆叠。
+- 两个 `.ib` **并排**在一行，且 `width/height` **都生效**。
+
+**和 §5 已有内容的衔接**
+- §5 第 273–297 行讲 **margin collapse** ——只在「block + 垂直相邻」时发生；inline / inline-block 都不参与。
+- §5 第 299–316 行的左右盒示例正是 **`display: inline-block`**，所以中间空隙是 **20 + 20 ≈ 40px**「相加」，而不是 collapse 取较大值。
+- 行 269 写「`<h1>` 块级默认可铺满包容块宽度」——也是 **block** 行为的直观体现。
 
 #### Q11（`tb2`）：Margin collapse 是什么意思？
 
@@ -1246,7 +1338,7 @@ fetch('/typo-path')           // 404
 - 超链接：**可点击的呈现文字**在 **`<a>...</a>` 内容**；**`href`**=目标；**`title`**=补充/悬停（**Week 02 Q5**）。  
 - **Thymeleaf**：服务端模板，**Model → 模板 → HTML**；**`@PathVariable`** 配 **`/…/{id}`**，别把字面量 **`/ids`** 当成 `{id}`（**resit Q28**，**Week 02 §5**）。
 - 选择器高频：`#id`、`.class`、后代空格、子代 `>`、相邻兄弟 `+`、通用兄弟 `~`。
-- inline / block 行为差异与 box model 是基础必考。
+- inline / block 行为差异与 box model 是基础必考（见 **§5.1 inline vs block 展开**：宽高是否生效、上下 margin 是否参与 collapse、inline-block 的折中行为、`<span>` 设宽无效等）。
 - `margin collapse` 主要发生在垂直相邻块级元素。
 - media query 先判媒体类型（screen/print），再判条件，再看层叠与继承。
 - Grid auto-placement 默认按书写方向放置（通常左到右、上到下）。
